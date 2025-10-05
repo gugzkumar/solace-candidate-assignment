@@ -8,7 +8,7 @@
 
 1. Install all dependencies `npm install`
 1. Run `npm run dev`
-1. Go to [local](http://localhost:3000/)
+1. Go to [http://localhost:3000](http://localhost:3000/)
 1. *Add steps to test here*
 
 
