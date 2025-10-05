@@ -80,17 +80,17 @@ export default function Home() {
             </tr>
           </thead>
           <tbody>
-            {filteredAdvocates.map((advocate) => {
+            {filteredAdvocates.map((advocate, index) => {
               return (
-                <tr key={advocate.id} className="odd:bg-white even:bg-gray-100 border-b border-gray-200 *:px-3 *:py-2 *:whitespace-nowrap">
+                <tr key={index} className="odd:bg-white even:bg-gray-100 border-b border-gray-200 *:px-3 *:py-2 *:whitespace-nowrap">
                   <td>{advocate.firstName}</td>
                   <td>{advocate.lastName}</td>
                   <td>{advocate.city}</td>
                   <td>{advocate.degree}</td>
                   <td>
                     <ul className="max-w-md space-y-1 list-disc list-inside">
-                      {advocate.specialties.map((s) => (
-                        <li key={s}>{s}</li>
+                      {advocate.specialties.map((s, index) => (
+                        <li key={index}>{s}</li>
                       ))}
                     </ul>
                   </td>
