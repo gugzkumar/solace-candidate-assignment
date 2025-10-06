@@ -5,6 +5,7 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { formatPhoneNumber } from "./utilities";
 import { advocates } from "../db/schema";
 import SearchBar from "../components/SearchBar";
+import PaginationBar from "../components/PaginationBar";
 
 // Infer the Advocate type from the database schema
 type AdvocateInfered = typeof advocates.$inferSelect;
@@ -18,6 +19,7 @@ export default function Home() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const searchTerm = searchParams.get('searchTerm') || "";
+  const page = parseInt(searchParams.get('page') || "1");
   
   const [advocates, setAdvocates] = useState<Advocate[]>([]);
   const [filteredAdvocates, setFilteredAdvocates] = useState<Advocate[]>([]);
@@ -62,6 +64,20 @@ export default function Home() {
       router.push(pathname + '?' + params.toString());
     }
   };
+
+  // Handle page change action from PaginationBar component
+  const onPageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams);
+    if (newPage === page) {
+      return;
+    } else if (newPage === 1) {
+      params.delete('page');
+      router.push(pathname + '?' + params.toString());
+    } else {
+      params.set('page', newPage.toString());
+      router.push(pathname + '?' + params.toString());
+    }
+  }
 
   return (
     <main style={{ margin: "24px" }}>
@@ -118,6 +134,8 @@ export default function Home() {
           </tbody>
         </table>
       </div>
+      <br/ >
+      <PaginationBar currentPage={page} totalPages={10} onPageChange={onPageChange} />
     </main>
   );
 }
