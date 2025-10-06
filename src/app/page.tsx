@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { formatPhoneNumber } from "./utilities";
 import { advocates } from "../db/schema";
+import SearchBar from "../components/SearchBar";
 
 // Infer the Advocate type from the database schema
 type AdvocateInfered = typeof advocates.$inferSelect;
@@ -11,25 +13,28 @@ type Advocate = Omit<AdvocateInfered, 'specialties' > & { specialties: string[] 
 
 
 export default function Home() {
+  // Get searchTerm from URL query parameters
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const searchTerm = searchParams.get('searchTerm') || "";
+  
   const [advocates, setAdvocates] = useState<Advocate[]>([]);
   const [filteredAdvocates, setFilteredAdvocates] = useState<Advocate[]>([]);
 
+  // Fetch all advocates when component searchTerm changes
   useEffect(() => {
     console.log("fetching advocates...");
     fetch("/api/advocates").then((response) => {
       response.json().then((jsonResponse) => {
         setAdvocates(jsonResponse.data);
-        setFilteredAdvocates(jsonResponse.data);
       });
     });
-  }, []);
+  }, [searchTerm]);
 
-  const onChange = (e) => {
-    const searchTerm = e.target.value;
-
-    document.getElementById("search-term").innerHTML = searchTerm;
-
-    console.log("filtering advocates...");
+  // Update filtered list of advocates when main list of advocates or searchTerm changes
+  useEffect(() => {
+    console.log("filtering advocates..." + searchTerm);
     const filteredAdvocates: Advocate[] = advocates.filter((advocate: Advocate) => {
       return (
         advocate.firstName.includes(searchTerm) ||
@@ -41,29 +46,36 @@ export default function Home() {
         formatPhoneNumber(advocate.phoneNumber).includes(searchTerm)
       );
     });
-
     setFilteredAdvocates(filteredAdvocates);
-  };
+  }, [JSON.stringify(advocates), searchTerm]);
 
-  const onClick = () => {
-    console.log(advocates);
-    setFilteredAdvocates(advocates);
+  // Handle search action from SearchBar component
+  const onSearch = (newSearchTerm: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (newSearchTerm === searchTerm) {
+      return;
+    } else if (newSearchTerm === "") {
+      params.delete('searchTerm');
+      router.push(pathname);
+    } else {
+      params.set('searchTerm', newSearchTerm);
+      router.push(pathname + '?' + params.toString());
+    }
   };
 
   return (
     <main style={{ margin: "24px" }}>
       <h1 className="mb-4 text-4xl font-extrabold text-gray-900 md:text-5xl lg:text-6xl">Solace Advocates</h1>
-      <br />
-      <br />
       <div>
-        <p>Search</p>
-        <p>
-          Searching for: <span id="search-term"></span>
-        </p>
-        <input style={{ border: "1px solid black" }} onChange={onChange} />
-        <button onClick={onClick}>Reset Search</button>
+        <SearchBar placeholder="Search Advocates..." defaultValue={searchTerm} onClickSearch={onSearch} />
+        {
+          searchTerm === "" ? <></> :
+          <>
+            <br/>
+            Results for "<span id="search-term" className="font-semibold">{searchTerm}</span>"
+          </>
+        }
       </div>
-      <br />
       <br />
       {/* Table styling from https://www.hyperui.dev/components/application/tables */}
       <div className="overflow-x-auto rounded border border-gray-300 shadow-sm">
