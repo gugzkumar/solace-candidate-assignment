@@ -1,19 +1,15 @@
-import { drizzle } from "drizzle-orm/postgres-js";
+import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
+import * as schema from "./schema"; // <-- export your tables from here
 
 const setup = () => {
   if (!process.env.DATABASE_URL) {
-    console.error("DATABASE_URL is not set");
-    return {
-      select: () => ({
-        from: () => [],
-      }),
-    };
+    throw new Error("DATABASE_URL is not set");
   }
 
   // for query purposes
   const queryClient = postgres(process.env.DATABASE_URL);
-  const db = drizzle(queryClient);
+  const db: PostgresJsDatabase<typeof schema> = drizzle(queryClient, { schema });
   return db;
 };
 

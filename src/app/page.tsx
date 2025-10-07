@@ -3,14 +3,14 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { formatPhoneNumber } from "./utilities";
-import { advocates } from "../db/schema";
+import { advocates, specialties } from "../db/schema";
 import SearchBar from "../components/SearchBar";
 import PaginationBar from "../components/PaginationBar";
 
-// Infer the Advocate type from the database schema
+// Infer the Specialty adn Advocate type from the database schema
+type Specialty = typeof specialties.$inferSelect;
 type AdvocateInfered = typeof advocates.$inferSelect;
-// Redefine Advocate type to have specialties as string array since jsonb is not inferred correctly
-type Advocate = Omit<AdvocateInfered, 'specialties' > & { specialties: string[] };
+type Advocate = AdvocateInfered & { specialties: Specialty[] };
 
 
 export default function Home() {
@@ -20,36 +20,19 @@ export default function Home() {
   const searchParams = useSearchParams();
   const searchTerm = searchParams.get('searchTerm') || "";
   const page = parseInt(searchParams.get('page') || "1");
-  
+  const [totalPages, setTotalPages] = useState(0); // Placeholder total pages, replace with actual value from API
   const [advocates, setAdvocates] = useState<Advocate[]>([]);
-  const [filteredAdvocates, setFilteredAdvocates] = useState<Advocate[]>([]);
 
   // Fetch all advocates when component searchTerm changes
   useEffect(() => {
     console.log("fetching advocates...");
-    fetch("/api/advocates").then((response) => {
+    fetch("/api/advocates" + '?'+ new URLSearchParams({ searchTerm, page: page.toString() })).then((response) => {
       response.json().then((jsonResponse) => {
         setAdvocates(jsonResponse.data);
+        setTotalPages(jsonResponse.totalPages);
       });
     });
-  }, [searchTerm]);
-
-  // Update filtered list of advocates when main list of advocates or searchTerm changes
-  useEffect(() => {
-    console.log("filtering advocates..." + searchTerm);
-    const filteredAdvocates: Advocate[] = advocates.filter((advocate: Advocate) => {
-      return (
-        advocate.firstName.includes(searchTerm) ||
-        advocate.lastName.includes(searchTerm) ||
-        advocate.city.includes(searchTerm) ||
-        advocate.degree.includes(searchTerm) ||
-        advocate.specialties.includes(searchTerm) ||
-        advocate.yearsOfExperience.toString().includes(searchTerm) ||
-        formatPhoneNumber(advocate.phoneNumber).includes(searchTerm)
-      );
-    });
-    setFilteredAdvocates(filteredAdvocates);
-  }, [JSON.stringify(advocates), searchTerm]);
+  }, [searchTerm, page]);
 
   // Handle search action from SearchBar component
   const onSearch = (newSearchTerm: string) => {
@@ -58,9 +41,11 @@ export default function Home() {
       return;
     } else if (newSearchTerm === "") {
       params.delete('searchTerm');
+      params.delete('page');
       router.push(pathname);
     } else {
       params.set('searchTerm', newSearchTerm);
+      params.delete('page');
       router.push(pathname + '?' + params.toString());
     }
   };
@@ -108,7 +93,7 @@ export default function Home() {
             </tr>
           </thead>
           <tbody>
-            {filteredAdvocates.map((advocate, index) => {
+            {advocates.map((advocate, index) => {
               return (
                 <tr key={index} className="odd:bg-white even:bg-gray-100 border-b border-gray-200 *:px-3 *:py-2 *:whitespace-nowrap">
                   <td>{advocate.firstName}</td>
@@ -118,7 +103,7 @@ export default function Home() {
                   <td>
                     <ul className="max-w-md space-y-1 list-disc list-inside">
                       {advocate.specialties.map((s, index) => (
-                        <li key={index}>{s}</li>
+                        <li key={index}>{s.specialtyName}</li>
                       ))}
                     </ul>
                   </td>
@@ -135,7 +120,7 @@ export default function Home() {
         </table>
       </div>
       <br/ >
-      <PaginationBar currentPage={page} totalPages={10} onPageChange={onPageChange} />
+      <PaginationBar currentPage={page} totalPages={totalPages} onPageChange={onPageChange} />
     </main>
   );
 }
