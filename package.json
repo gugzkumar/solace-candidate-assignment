@@ -16,7 +16,7 @@
     "db:migrate:force": "npx drizzle-kit push --force",
     "db:seed": "curl -X POST http://localhost:3000/api/seed",
     "db:seed:random:100": "curl -X POST http://localhost:3000/api/seed/random/100",
-    "db:seed:random:1000": "curl -X POST http://localhost:3000/api/seed/random/100",
+    "db:seed:random:1000": "curl -X POST http://localhost:3000/api/seed/random/1000",
     "db:restart:all": "npm run db:teardown &&  npm run db:start && sleep 5 && npm run db:migrate:force && npm run db:seed:random:100"
   },
   "dependencies": {
