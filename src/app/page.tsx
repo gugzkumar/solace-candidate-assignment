@@ -23,6 +23,7 @@ export default function Home() {
   
   const [advocates, setAdvocates] = useState<Advocate[]>([]);
   const [filteredAdvocates, setFilteredAdvocates] = useState<Advocate[]>([]);
+  const [errorFetching, setErrorFetching] = useState<boolean>(false);
 
   // Fetch all advocates when component searchTerm changes
   useEffect(() => {
@@ -30,6 +31,9 @@ export default function Home() {
     fetch("/api/advocates").then((response) => {
       response.json().then((jsonResponse) => {
         setAdvocates(jsonResponse.data);
+      }).catch((error) => {
+        console.error("Error parsing JSON response:", error);
+        setErrorFetching(true);
       });
     });
   }, [searchTerm]);
@@ -77,6 +81,20 @@ export default function Home() {
       params.set('page', newPage.toString());
       router.push(pathname + '?' + params.toString());
     }
+  }
+
+  if (errorFetching) {
+    return (
+      <main style={{ margin: "24px" }}>
+        <h1 className="mb-4 text-4xl font-extrabold text-gray-900 md:text-5xl lg:text-6xl">Solace Advocates</h1>
+        <div className="text-red-600">
+          Error fetching advocates. If you have not set up the database and data in it, please do so. You can run the following to setup, migrate and seed your local db in one command:
+          <br/>
+          <br/>
+          <code className="rounded-md p-4 bg-gray-800 font-mono text-gray-100 mt-100">npm run db:restart:all</code>
+        </div>
+      </main>
+    );
   }
 
   return (

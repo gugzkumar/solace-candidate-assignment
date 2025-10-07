@@ -1,5 +1,6 @@
 import db from "..";
 import { advocates } from "../schema";
+import { faker } from "@faker-js/faker";
 
 const specialties = [
   "Bipolar",
@@ -175,4 +176,29 @@ const advocateData = [
   },
 ];
 
-export { advocateData };
+/**
+ * Generates a random advocate object using faker library.
+ * @returns {Object} A random advocate
+ */
+export function getRandomAdvocate() {
+  return {
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
+    city: faker.location.city(),
+    degree: faker.helpers.arrayElement(["MD", "PhD", "MSW"]),
+    yearsOfExperience: faker.number.int({ min: 1, max: 40 }),
+    phoneNumber: parseInt(faker.string.numeric({ length: 10, exclude: ['0'] })),
+    specialties: faker.helpers.arrayElements(specialties, { min: 1, max: 8 })
+  };
+}
+
+/**
+ * Generates multiple random advocate objects.
+ * @param count Number of random advocates to generate
+ * @returns An array of random advocates
+ */
+export function getMultipleRandomAdvocates(count: number) {
+  return faker.helpers.multiple(getRandomAdvocate, { count });
+}
+
+export { advocateData, specialties };
