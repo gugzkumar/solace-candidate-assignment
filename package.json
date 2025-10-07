@@ -9,9 +9,18 @@
     "lint": "next lint",
     "generate": "drizzle-kit generate",
     "migrate:up": "node ./src/db/migrate.js",
-    "seed": "node --loader esbuild-register/loader -r esbuild-register ./src/db/seed/index.ts"
+    "seed": "node --loader esbuild-register/loader -r esbuild-register ./src/db/seed/index.ts",
+    "db:start": "docker compose up -d",
+    "db:teardown": "docker compose down -v",
+    "db:migrate": "npx drizzle-kit push",
+    "db:migrate:force": "npx drizzle-kit push --force",
+    "db:seed": "curl -X POST http://localhost:3000/api/seed",
+    "db:seed:random:100": "curl -X POST http://localhost:3000/api/seed/random/100",
+    "db:seed:random:1000": "curl -X POST http://localhost:3000/api/seed/random/100",
+    "db:restart:all": "npm run db:teardown &&  npm run db:start && sleep 5 && npm run db:migrate:force && npm run db:seed:random:100"
   },
   "dependencies": {
+    "@faker-js/faker": "^10.0.0",
     "drizzle-orm": "^0.32.1",
     "next": "^14.2.19",
     "postgres": "^3.4.4",
