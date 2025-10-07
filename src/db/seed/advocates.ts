@@ -187,7 +187,7 @@ export function getRandomAdvocate() {
     city: faker.location.city(),
     degree: faker.helpers.arrayElement(["MD", "PhD", "MSW"]),
     yearsOfExperience: faker.number.int({ min: 1, max: 40 }),
-    phoneNumber: parseInt(faker.string.numeric({ length: 9, exclude: ['0'] })),
+    phoneNumber: parseInt(faker.string.numeric({ length: 10, exclude: ['0'] })),
     specialties: faker.helpers.arrayElements(specialties, { min: 1, max: 8 })
   };
 }
