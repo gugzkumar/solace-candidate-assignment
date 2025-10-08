@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 
-const MAX_LEFT_PAGES = 1;
-const MAX_RIGHT_PAGES = 1;
+const MAX_LEFT_PAGES = 2;
+const MAX_RIGHT_PAGES = 2;
 
 const noAction = () => {};
 
