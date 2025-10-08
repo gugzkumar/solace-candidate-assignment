@@ -21,39 +21,23 @@ export default function Home() {
   const searchTerm = searchParams.get('searchTerm') || "";
   const page = parseInt(searchParams.get('page') || "1");
   
+  const [totalPages, setTotalPages] = useState(0);
   const [advocates, setAdvocates] = useState<Advocate[]>([]);
-  const [filteredAdvocates, setFilteredAdvocates] = useState<Advocate[]>([]);
   const [errorFetching, setErrorFetching] = useState<boolean>(false);
 
   // Fetch all advocates when component searchTerm changes
   useEffect(() => {
     console.log("fetching advocates...");
-    fetch("/api/advocates").then((response) => {
+    fetch("/api/advocates" + '?'+ new URLSearchParams({ search_query: searchTerm, page: page.toString() })).then((response) => {
       response.json().then((jsonResponse) => {
         setAdvocates(jsonResponse.data);
+        setTotalPages(jsonResponse.totalPages);
       }).catch((error) => {
         console.error("Error parsing JSON response:", error);
         setErrorFetching(true);
       });
     });
-  }, [searchTerm]);
-
-  // Update filtered list of advocates when main list of advocates or searchTerm changes
-  useEffect(() => {
-    console.log("filtering advocates..." + searchTerm);
-    const filteredAdvocates: Advocate[] = advocates.filter((advocate: Advocate) => {
-      return (
-        advocate.firstName.includes(searchTerm) ||
-        advocate.lastName.includes(searchTerm) ||
-        advocate.city.includes(searchTerm) ||
-        advocate.degree.includes(searchTerm) ||
-        advocate.specialties.includes(searchTerm) ||
-        advocate.yearsOfExperience.toString().includes(searchTerm) ||
-        formatPhoneNumber(advocate.phoneNumber).includes(searchTerm)
-      );
-    });
-    setFilteredAdvocates(filteredAdvocates);
-  }, [JSON.stringify(advocates), searchTerm]);
+  }, [searchTerm, page]);
 
   // Handle search action from SearchBar component
   const onSearch = (newSearchTerm: string) => {
@@ -62,9 +46,11 @@ export default function Home() {
       return;
     } else if (newSearchTerm === "") {
       params.delete('searchTerm');
+      params.delete('page');
       router.push(pathname);
     } else {
       params.set('searchTerm', newSearchTerm);
+      params.delete('page');
       router.push(pathname + '?' + params.toString());
     }
   };
@@ -111,6 +97,8 @@ export default function Home() {
         }
       </div>
       <br />
+      <PaginationBar currentPage={page} totalPages={totalPages} onPageChange={onPageChange} />
+      <br />
       {/* Table styling from https://www.hyperui.dev/components/application/tables */}
       <div className="overflow-x-auto rounded border border-gray-300 shadow-sm">
         <table className="min-w-full divide-y-2 divide-gray-200">
@@ -126,7 +114,7 @@ export default function Home() {
             </tr>
           </thead>
           <tbody>
-            {filteredAdvocates.map((advocate, index) => {
+            {advocates.map((advocate, index) => {
               return (
                 <tr key={index} className="odd:bg-white even:bg-gray-100 border-b border-gray-200 *:px-3 *:py-2 *:whitespace-nowrap">
                   <td>{advocate.firstName}</td>
@@ -153,7 +141,7 @@ export default function Home() {
         </table>
       </div>
       <br/ >
-      <PaginationBar currentPage={page} totalPages={10} onPageChange={onPageChange} />
+      <PaginationBar currentPage={page} totalPages={totalPages} onPageChange={onPageChange} />
     </main>
   );
 }
